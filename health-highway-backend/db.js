@@ -1,35 +1,15 @@
-const { Pool } = require('pg');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Configuration for Local vs Cloud
-const poolConfig = process.env.DATABASE_URL
-  ? {
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false // Required for Render/Cloud DBs
-      }
-    }
-  : {
-      user: process.env.DB_USER,
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      password: process.env.DB_PASSWORD,
-      port: process.env.DB_PORT,
-    };
-
-const pool = new Pool(poolConfig);
-
-pool.connect((err, client, release) => {
-  if (err) {
-    return console.error('❌ Connection Error:', err.stack);
+const connectDB = async () => {
+  try {
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/health_highway';
+    await mongoose.connect(uri);
+    console.log('✅ Connected to MongoDB successfully!');
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err.message);
+    process.exit(1);
   }
-  client.query('SELECT NOW()', (err, result) => {
-    release();
-    if (err) {
-      return console.error('❌ Error executing query', err.stack);
-    }
-    console.log('✅ Connected to Database successfully!');
-  });
-});
+};
 
-module.exports = pool;
+module.exports = connectDB;
